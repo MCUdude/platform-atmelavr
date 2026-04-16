@@ -1,5 +1,5 @@
 {
-  "name": "atmelavr",
+  "name": "atmelavr-mcudude",
   "title": "Atmel AVR",
   "description": "Atmel AVR 8-bit MCUs deliver a unique combination of performance, power efficiency and design flexibility. Optimized to speed time to market-and easily adapt to new ones-they are based on the industry's most code-efficient architecture for C and assembly programming",
   "homepage": "http://www.atmel.com/products/microcontrollers/avr/default.aspx",
@@ -9,14 +9,15 @@
       "Microchip",
       "AVR",
       "Atmel",
-      "8-bit"
+      "8-bit",
+      "MCUdude"
   ],
   "engines": {
     "platformio": "^6"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/platformio/platform-atmelavr.git"
+    "url": "https://github.com/MCUdude/platform-atmelavr.git"
   },
   "version": "5.1.0",
   "frameworks": {
@@ -37,35 +38,17 @@
       "owner": "platformio",
       "version": "~5.2.0"
     },
-    "framework-arduino-avr-attiny": {
-      "type": "framework",
+    "tool-avrdude": {
+      "type": "uploader",
       "optional": true,
       "owner": "platformio",
-      "version": "~1.5.2"
+      "version": "~1.80100.0"
     },
-    "framework-arduino-avr-bean": {
-      "type": "framework",
+    "tool-simavr": {
+      "type": "debugger",
       "optional": true,
       "owner": "platformio",
-      "version": "~2.0.3"
-    },
-    "framework-arduino-avr-core13": {
-      "type": "framework",
-      "optional": true,
-      "owner": "platformio",
-      "version": "~0.0.22"
-    },
-    "framework-arduino-avr-digistump": {
-      "type": "framework",
-      "optional": true,
-      "owner": "platformio",
-      "version": "~1.7.2"
-    },
-    "framework-arduino-avr-dwenguino": {
-      "type": "framework",
-      "optional": true,
-      "owner": "platformio",
-      "version": "~2.2.1"
+      "version": "~1.10700.0"
     },
     "framework-arduino-avr-megacore": {
       "type": "framework",
@@ -97,42 +80,11 @@
       "owner": "platformio",
       "version": "~2.5.2"
     },
-    "framework-arduino-avr-nicai": {
+    "framework-arduino-avr-tinycore": {
       "type": "framework",
       "optional": true,
-      "owner": "platformio",
-      "version": "~3.5.0"
-    },
-    "framework-arduino-avr-panstamp": {
-      "type": "framework",
-      "optional": true,
-      "owner": "platformio",
-      "version": "~1.5.7"
-    },
-    "framework-arduino-avr-prusa_rambo": {
-      "type": "framework",
-      "optional": true,
-      "owner": "platformio",
-      "version": "~1.0.3"
-    },
-    "tool-avrdude": {
-      "type": "uploader",
-      "optional": true,
-      "owner": "platformio",
-      "version": "~1.60300.0",
-      "optionalVersions": ["~1.70200.0"]
-    },
-    "tool-micronucleus": {
-      "type": "uploader",
-      "optional": true,
-      "owner": "platformio",
-      "version": "~1.250.0"
-    },
-    "tool-simavr": {
-      "type": "debugger",
-      "optional": true,
-      "owner": "platformio",
-      "version": "~1.10700.0"
+      "owner": "mcudude",
+      "version": "https://MCUdude.github.io/TinyCore/TinyCore-0.6.0.tar.bz2"
     }
   }
 }

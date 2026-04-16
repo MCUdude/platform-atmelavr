@@ -15,7 +15,7 @@
 from platformio.public import PlatformBase
 
 
-class AtmelavrPlatform(PlatformBase):
+class AtmelavrmcududePlatform(PlatformBase):
 
     def configure_default_packages(self, variables, targets):
         if not variables.get("board"):
@@ -29,20 +29,6 @@ class AtmelavrPlatform(PlatformBase):
                 "pioframework", []) and build_core != "arduino":
 
             framework_package = "framework-arduino-avr-%s" % build_core.lower()
-            if build_core in ("dtiny", "pro"):
-                framework_package = "framework-arduino-avr-digistump"
-            elif build_core in ("tiny", "tinymodern"):
-                framework_package = "framework-arduino-avr-attiny"
-
-            if build_core in (
-                "MiniCore",
-                "MegaCore",
-                "MightyCore",
-                "MajorCore",
-                "MicroCore",
-            ):
-                self.packages["tool-avrdude"]["version"] = "~1.70200.0"
-
             self.frameworks["arduino"]["package"] = framework_package
             self.packages[framework_package]["optional"] = False
             self.packages["framework-arduino-avr"]["optional"] = True
@@ -51,11 +37,8 @@ class AtmelavrPlatform(PlatformBase):
             "upload_protocol",
             self.board_config(variables.get("board")).get(
                 "upload.protocol", ""))
-        disabled_tool = "tool-micronucleus"
-        required_tool = ""
-
-        if upload_protocol == "micronucleus":
-            disabled_tool = "tool-avrdude"
+        disabled_tool = ""
+        required_tool = "tool-avrdude"
 
         if "fuses" in targets or "bootloader" in targets:
             required_tool = "tool-avrdude"

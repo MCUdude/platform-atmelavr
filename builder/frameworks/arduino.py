@@ -32,10 +32,8 @@ board = env.BoardConfig()
 build_core = board.get("build.core", "")
 
 FRAMEWORK_DIR = platform.get_package_dir("framework-arduino-avr")
-if build_core in ("dtiny", "pro"):
-    FRAMEWORK_DIR = platform.get_package_dir("framework-arduino-avr-digistump")
-elif build_core in ("tiny", "tinymodern"):
-    FRAMEWORK_DIR = platform.get_package_dir("framework-arduino-avr-attiny")
+if build_core == "tiny":
+    FRAMEWORK_DIR = platform.get_package_dir("framework-arduino-avr-tiny")
 elif build_core != "arduino":
     FRAMEWORK_DIR = platform.get_package_dir(
         "framework-arduino-avr-%s" % build_core.lower())
@@ -126,7 +124,7 @@ env.Append(
     ]
 )
 
-if build_core in ("MiniCore", "MegaCore", "MightyCore", "MajorCore"):
+if build_core in ("MiniCore", "MegaCore", "MightyCore", "MajorCore", "MicroCore", "TinyCore"):
     env.Append(
         CXXFLAGS=[
             "-std=gnu++17"
@@ -148,15 +146,11 @@ if build_core in ("MiniCore", "MegaCore", "MightyCore", "MajorCore", "MicroCore"
     upload_section["maximum_size"] -= board.get(
         "bootloader.size", get_bootloader_size()
     )
-elif build_core in ("tiny", "tinymodern"):
+elif build_core == "tiny":
     flatten_defines = env.Flatten(env["CPPDEFINES"])
     extra_defines = []
     if "CLOCK_SOURCE" not in flatten_defines:
         extra_defines.append(("CLOCK_SOURCE", board.get("build.clock_source", 0)))
-    if "NEOPIXELPORT" not in flatten_defines:
-        extra_defines.append(
-            ("NEOPIXELPORT", board.get("build.neo_pixel_port", "PORTA"))
-        )
 
     if extra_defines:
         env.AppendUnique(CPPDEFINES=extra_defines)

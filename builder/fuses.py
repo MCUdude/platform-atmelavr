@@ -68,6 +68,17 @@ def get_lfuse(target, f_cpu, oscillator, bod, eesave, ckout):
         "atmega8",
     )
     targets_4 = ("attiny13", "attiny13a")
+    targets_5 = ("attiny85", "attiny45", "attiny25")
+    targets_6 = ("attiny84", "attiny44", "attiny24")
+    targets_7 = ("attiny87", "attiny167")
+    targets_8 = ("attiny48", "attiny88")
+    targets_9 = ("attiny841", "attiny441")
+    targets_10 = ("attiny861", "attiny461", "attiny261")
+    targets_11 = ("attiny4313", "attiny2313a", "attiny2313")
+    targets_12 = ("attiny1634",)
+    targets_13 = ("attiny828",)
+    targets_14 = ("attiny43", "attiny43u")
+    targets_15 = ("attiny26",)
 
     ckout_bit = 1 if ckout == "yes" else 0
     ckout_offset = ckout_bit << 6
@@ -132,7 +143,114 @@ def get_lfuse(target, f_cpu, oscillator, bod, eesave, ckout):
             elif f_cpu == "16000L":
                 return 0x6B & ~eesave_offset
             else:
-                sys.stderr.write("Error: unknown f_cpu value %s\n" % f_cpu)
+                sys.stderr.write("Error: unknown internal f_cpu value %s\n" % f_cpu)
+                env.Exit(1)
+
+
+    elif target in targets_5 + targets_6 + targets_10:
+        if oscillator == "external":
+            return 0xFF & ~ckout_offset
+        elif oscillator == "external_clock":
+            return 0xE0 & ~ckout_offset
+        else:
+            has_pll = target in targets_5 + targets_10
+            if f_cpu == "16000000L" and has_pll:
+                return 0xF1 & ~ckout_offset
+            elif f_cpu == "8000000L":
+                return 0xE2 & ~ckout_offset
+            elif f_cpu in ("4000000L", "1000000L"):
+                return 0x62 & ~ckout_offset
+            elif f_cpu == "128000L":
+                if target in (targets_5, targets_6):
+                    return 0xE4 & ~ckout_offset
+                else:
+                    return 0xE3 & ~ckout_offset
+            else:
+                sys.stderr.write("Error: unknown internal f_cpu value %s\n" % f_cpu)
+                env.Exit(1)
+
+    elif target in targets_7 + targets_9 + targets_12:
+        ext_val = 0xFF if target in targets_7 else (0xEE if target in targets_9 else 0xEF)
+        if oscillator == "external":
+            return ext_val & ~ckout_offset
+        elif oscillator == "external_clock":
+            return 0xE0 & ~ckout_offset
+        else:
+            has_wdt = target in targets_7
+            if f_cpu == "8000000L":
+                return 0xE2 & ~ckout_offset
+            elif f_cpu in ("4000000L", "1000000L"):
+                return 0x62 & ~ckout_offset
+            elif f_cpu == "128000L" and has_wdt:
+                return 0xE3 & ~ckout_offset
+            else:
+                sys.stderr.write("Error: unknown internal f_cpu value %s\n" % f_cpu)
+                env.Exit(1)
+    
+    elif target in targets_8 + targets_13:
+        ext_val = 0xEC if target in targets_8 else 0xE0
+        if oscillator == "external_clock":
+            return ext_val & ~ckout_offset
+        else:
+            has_wdt = target in targets_8
+            if f_cpu == "8000000L":
+                return 0xEE & ~ckout_offset
+            elif f_cpu in ("4000000L", "1000000L"):
+                return 0x6E & ~ckout_offset
+            elif f_cpu == "128000L" and has_wdt:
+                return 0xEF & ~ckout_offset
+            else:
+                sys.stderr.write("Error: unknown internal f_cpu value %s\n" % f_cpu)
+                env.Exit(1)
+
+    elif target in (targets_11):
+        if oscillator == "external":
+            return 0xFF & ~ckout_offset
+        elif oscillator == "external_clock":
+            return 0xE0 & ~ckout_offset
+        else:
+            if f_cpu == "8000000L":
+                return 0xE4 & ~ckout_offset
+            elif f_cpu == "4000000L":
+                return 0xE2 & ~ckout_offset
+            elif f_cpu == "1000000L":
+                return 0x64 & ~ckout_offset
+            elif f_cpu == "128000L":
+                return 0xE6 & ~ckout_offset
+            else:
+                sys.stderr.write("Error: unknown internal f_cpu value %s\n" % f_cpu)
+                env.Exit(1)
+
+    elif target in (targets_14):
+        if oscillator == "external_clock":
+            return 0x60 & ~ckout_offset
+        else:
+            if f_cpu == "8000000L":
+                return 0xE2 & ~ckout_offset
+            elif f_cpu in ("4000000L", "1000000L"):
+                return 0x62 & ~ckout_offset
+            elif f_cpu == "128000L":
+                return 0xE3 & ~ckout_offset
+            else:
+                sys.stderr.write("Error: unknown internal f_cpu value %s\n" % f_cpu)
+                env.Exit(1)
+
+    elif target in (targets_15):
+        if oscillator == "external":
+            return 0xBF
+        elif oscillator == "external_clock":
+            return 0xE0
+        else:
+            if f_cpu == "16000000L":
+                return 0x61
+            elif f_cpu == "8000000L":
+                return 0xE4
+            elif f_cpu == "4000000L":
+                return 0xE3
+            elif f_cpu == "1000000L":
+                return 0xE1
+            else:
+                sys.stderr.write("Error: unknown internal f_cpu value %s\n" % f_cpu)
                 env.Exit(1)
 
     else:
@@ -201,6 +319,19 @@ def get_hfuse(target, oscillator, bod, eesave, jtagen, bootloader_type):
     targets_5 = ("atmega128", "atmega64", "atmega32")
     targets_6 = ("atmega8535", "atmega8515", "atmega16", "atmega8")
     targets_7 = ("attiny13", "attiny13a")
+    targets_8 = ("attiny26",)
+    targets_9 = ("attiny43", "attiny43u")
+    targets_10 = (
+        "attiny25", "attiny45", "attiny85",
+        "attiny24", "attiny44", "attiny84",
+        "attiny261", "attiny461", "attiny861",
+        "attiny2313", "attiny2313A", "attiny4313",
+        "attiny441", "attiny841",
+        "attiny87", "attiny167",
+        "attiny48", "attiny88",
+        "attiny1634",
+        "attiny828",
+    )
 
     eesave_bit = 1 if eesave == "yes" else 0
     eesave_offset = eesave_bit << 3
@@ -238,8 +369,11 @@ def get_hfuse(target, oscillator, bod, eesave, jtagen, bootloader_type):
             return 0xDD & ~eesave_offset
         elif bod == "1.8v":
             return 0xDE & ~eesave_offset
-        else:
+        elif bod in ("disabled", ""):
             return 0xDF & ~eesave_offset
+        else:
+            sys.stderr.write("Error: Invalid BOD setting %s for target %s\n" % (bod, target))
+            env.Exit(1)
 
     elif target in targets_5:
         if is_urboot_or_noboot:
@@ -260,8 +394,58 @@ def get_hfuse(target, oscillator, bod, eesave, jtagen, bootloader_type):
             return 0xFB & ~selfprogen_offset
         elif bod == "1.8v":
             return 0xFD & ~selfprogen_offset
-        else:
+        elif bod in ("disabled", ""):
             return 0xFF & ~selfprogen_offset
+        else:
+            sys.stderr.write("Error: Invalid BOD setting %s for target %s\n" % (bod, target))
+            env.Exit(1)
+
+    elif target in targets_8:
+        eesave_offset = eesave_bit << 2
+        if bod == "4.3v":
+            return 0xF4 & ~eesave_offset
+        elif bod == "2.7v":
+            return 0xF6 & ~eesave_offset
+        elif bod in ("disabled", ""):
+            return 0xF7 & ~eesave_offset
+        else:
+            sys.stderr.write("Error: Invalid BOD setting %s for target %s\n" % (bod, target))
+            env.Exit(1)
+
+    elif target in targets_9:
+        if bod == "4.3v":
+            return 0xDC & ~eesave_offset
+        elif bod == "2.7v":
+            return 0xDD & ~eesave_offset
+        elif bod == "2.3v":
+            return 0xDB & ~eesave_offset
+        elif bod == "2.2v":
+            return 0xDA & ~eesave_offset
+        elif bod == "2.0v":
+            return 0xD0 & ~eesave_offset
+        elif bod == "1.9v":
+            return 0xD9 & ~eesave_offset
+        elif bod == "1.8v":
+            return 0xDE & ~eesave_offset
+        elif bod in ("disabled", ""):
+            return 0xDF & ~eesave_offset
+        else:
+            sys.stderr.write("Error: Invalid BOD setting %s for target %s\n" % (bod, target))
+            env.Exit(1)
+
+
+    elif target in targets_10:
+        if bod == "4.3v":
+            return 0xDD & ~eesave_offset
+        elif bod == "2.7v":
+            return 0xDC & ~eesave_offset
+        elif bod == "1.8v":
+            return 0xDE & ~eesave_offset
+        elif bod in ("disabled", ""):
+            return 0xDF & ~eesave_offset
+        else:
+            sys.stderr.write("Error: Invalid BOD setting %s for target %s\n" % (bod, target))
+            env.Exit(1)
 
     else:
         sys.stderr.write("Error: Couldn't calculate hfuse for %s\n" % target)
@@ -278,6 +462,7 @@ def get_efuse(target, bod, cfd, bootloader_type):
         "atmega32",
         "attiny13a",
         "attiny13",
+        "attiny26",
     )
     targets_1 = (
         "atmega2561",
@@ -328,14 +513,29 @@ def get_efuse(target, bod, cfd, bootloader_type):
         "atmega162",
     )
     targets_7 = ("atmega48", "atmega48p", "atmega48pb")
+    targets_8 = (
+        "attiny25", "attiny45", "attiny85",
+        "attiny24", "attiny44", "attiny84",
+        "attiny261", "attiny461", "attiny861",
+        "attiny2313", "attiny2313A", "attiny4313",
+        "attiny87", "attiny167",
+        "attiny48", "attiny88",
+        "attiny43", "attiny43u",
+    )
+    targets_9 = ("attiny441", "attiny841")
+    targets_10 = ("attiny1634",)
+    targets_11 = ("attiny828",)
 
     cfd_bit = 1 if cfd == "yes" else 0
     cfd_offset = cfd_bit << 3
+
+    spm_bit = 0 if bootloader_type == "urboot" else 1
 
     if target in targets_without_efuse:
         return None
 
     is_urboot_or_noboot = bootloader_type in ("no_bootloader", "urboot")
+    is_urboot = bootloader_type in ("urboot")
 
     if target in targets_1:
         if bod == "4.3v":
@@ -344,8 +544,11 @@ def get_efuse(target, bod, cfd, bootloader_type):
             return 0xFD
         elif bod == "1.8v":
             return 0xFE
-        else:
+        elif bod in ("disabled", ""):
             return 0xFF
+        else:
+            sys.stderr.write("Error: Invalid BOD setting %s for target %s\n" % (bod, target))
+            env.Exit(1)
 
     elif target in targets_2:
         if bod == "4.3v":
@@ -354,8 +557,11 @@ def get_efuse(target, bod, cfd, bootloader_type):
             return 0xF5 | cfd_offset
         elif bod == "1.8v":
             return 0xF6 | cfd_offset
-        else:
+        elif bod in ("disabled", ""):
             return 0xF7
+        else:
+            sys.stderr.write("Error: Invalid BOD setting %s for target %s\n" % (bod, target))
+            env.Exit(1)
 
     elif target in targets_3:
         if is_urboot_or_noboot:
@@ -381,8 +587,11 @@ def get_efuse(target, bod, cfd, bootloader_type):
             return 0xF3
         elif bod == "2.5v":
             return 0xF1
-        else:
+        elif bod in ("disabled", ""):
             return 0xFF
+        else:
+            sys.stderr.write("Error: Invalid BOD setting %s for target %s\n" % (bod, target))
+            env.Exit(1)
 
     elif target in targets_6:
         if bod == "4.3v":
@@ -391,8 +600,11 @@ def get_efuse(target, bod, cfd, bootloader_type):
             return 0xFB
         elif bod == "1.8v":
             return 0xFD
-        else:
+        elif bod in ("disabled", ""):
             return 0xFF
+        else:
+            sys.stderr.write("Error: Invalid BOD setting %s for target %s\n" % (bod, target))
+            env.Exit(1)
 
     elif target in targets_7:
         if is_urboot_or_noboot:
@@ -400,13 +612,31 @@ def get_efuse(target, bod, cfd, bootloader_type):
         else:
             return 0xFE
 
+    elif target in targets_8:
+        if spm_bit:
+            return 0xFE
+        else:
+            return 0xFF
+
+    elif target in targets_9 + targets_10:
+        if bod in ("4.3v", "2.7v", "1.8v"):
+            return 0xF4 | spm_bit
+        else:
+            return 0xFE | spm_bit
+
+    elif target in targets_11:
+        if bod in ("4.3v", "2.7v", "1.8v"):
+            return 0xAF
+        else:
+            return 0xFF
+
     else:
         sys.stderr.write("Error: Couldn't calculate efuse for %s\n" % target)
         env.Exit(1)
 
 
-def is_target_without_bootloader(target):
-    targets_without_bootloader = (
+def is_target_without_bootsz_fuse(target):
+    targets_without_bootsz_fuse = (
         "attiny4313",
         "attiny2313",
         "attiny1634",
@@ -429,13 +659,12 @@ def is_target_without_bootloader(target):
         "attiny25",
         "attiny24",
     )
-
-    return target in targets_without_bootloader
+    return target in targets_without_bootsz_fuse
 
 
 def get_lock_bits(target, bootloader_type):
     is_urboot_or_noboot = bootloader_type in ("no_bootloader", "urboot")
-    if is_target_without_bootloader(target) or is_urboot_or_noboot:
+    if is_target_without_bootsz_fuse(target) or is_urboot_or_noboot:
         return 0xFF
     else:
         return 0xCF
@@ -469,6 +698,7 @@ if (not lfuse or not hfuse) and core not in (
     "MightyCore",
     "MajorCore",
     "MicroCore",
+    "TinyCore"
 ):
     sys.stderr.write(
         "Error: Dynamic fuses generation for %s is not supported."
@@ -476,27 +706,48 @@ if (not lfuse or not hfuse) and core not in (
     )
     env.Exit(1)
 
-if core in ("MiniCore", "MegaCore", "MightyCore", "MajorCore", "MicroCore"):
-    f_cpu = board.get("build.f_cpu", "16000000L").upper()
-    oscillator = board.get("hardware.oscillator", "external").lower()
+if core in ("MiniCore", "MegaCore", "MightyCore", "MajorCore", "MicroCore", "TinyCore"):
+
+    no_hw_uart = (
+        "attiny13", "attiny13a",
+        "attiny25", "attiny45", "attiny85",
+        "attiny24", "attiny44", "attiny84",
+        "attiny261", "attiny461", "attiny861",
+        "attiny48", "attiny88",
+        "attiny43", "attiny43u",
+        "attiny26"
+    )
+
     bod = board.get("hardware.bod", "2.7v").lower()
     eesave = board.get("hardware.eesave", "yes").lower()
-    jtagen = board.get("hardware.jtagen", "no").lower()
     ckout = board.get("hardware.ckout", "no").lower()
+    jtagen = board.get("hardware.jtagen", "no").lower()
     cfd = board.get("hardware.cfd", "no").lower()
     bootloader_type = board.get("bootloader.type", "urboot").lower()
     if core == "MicroCore":
+        f_cpu = board.get("build.f_cpu", "9600000L").upper()
+        oscillator = board.get("hardware.oscillator", "internal").lower()
         uart = "swio"
         uart_pins = board.get("bootloader.uart_pins", "no_bootloader")
         if "no_bootloader" in (uart_pins, bootloader_type):
             uart_pins = bootloader_type = "no_bootloader"
+    elif core == "TinyCore":
+        f_cpu = board.get("build.f_cpu", "8000000L").upper()
+        oscillator = board.get("hardware.oscillator", "internal").lower()
+        uart = board.get("hardware.uart", "no_bootloader").lower()
+        uart_pins = board.get("bootloader.uart_pins", "no_bootloader") if target in no_hw_uart else ""
+        bootloader_type = board.get("bootloader.type", "no_bootloader").lower()
+        if "no_bootloader" in (bootloader_type):
+            uart_pins = bootloader_type = "no_bootloader"
     else:
+        f_cpu = board.get("build.f_cpu", "16000000L").upper()
+        oscillator = board.get("hardware.oscillator", "external").lower()
         uart = board.get("hardware.uart", "uart0").lower()
         uart_pins = board.get("bootloader.%s_pins" % uart, "")
         if "no_bootloader" in (uart, uart_pins, bootloader_type):
             uart = uart_pins = bootloader_type = "no_bootloader"
-    if "optiboot" in bootloader_type:
-        bootloader_type = "optiboot"
+        if "optiboot" in bootloader_type:
+            bootloader_type = "optiboot"
 
     print("\nTARGET CONFIGURATION:")
     print("---------------------")
@@ -506,7 +757,7 @@ if core in ("MiniCore", "MegaCore", "MightyCore", "MajorCore", "MicroCore"):
     print("BOD level = %s" % bod)
     print("Save EEPROM = %s" % eesave)
     print("Bootloader type = %s" % bootloader_type)
-    if uart_pins != "no_bootloader" and core == "MicroCore":
+    if uart_pins != "no_bootloader" and target in no_hw_uart:
         print("UART pins = %s" % uart_pins)
     elif uart not in ("no_bootloader", "swio"):
         print("UART port = %s" % uart)
@@ -521,6 +772,7 @@ if core in ("MiniCore", "MegaCore", "MightyCore", "MajorCore", "MicroCore"):
         "atmega8",
         "attiny13",
         "attiny13a",
+        "attiny26"
     ):
         print("Clock output = %s" % ckout)
 
@@ -576,7 +828,7 @@ env.Replace(
     SETFUSESCMD="$FUSESUPLOADER $FUSESUPLOADERFLAGS $UPLOAD_FLAGS $FUSESFLAGS",
 )
 
-if not is_target_without_bootloader(target):
+if not is_target_without_bootsz_fuse(target):
     env.Append(FUSESUPLOADERFLAGS=["-e"])
 
 if env.subst("$UPLOAD_PROTOCOL") != "custom":
@@ -594,7 +846,7 @@ if efuse:
     env.Append(FUSESFLAGS=["-Uefuse:w:%s:m" % efuse])
 
 print(
-    "\nSelected fuses: [lfuse = %s, hfuse = %s%s]"
+    "\nSelected fuses: [lfuse = %s, hfuse = %s%s]\n"
     % (lfuse, hfuse, ", efuse = %s" % efuse if efuse else "")
 )
 

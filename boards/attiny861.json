@@ -1,10 +1,19 @@
 {
   "build": {
-    "core": "tiny",
+    "core": "TinyCore",
     "extra_flags": "-DARDUINO_AVR_ATTINYX61",
     "f_cpu": "8000000L",
     "mcu": "attiny861",
-    "variant": "tinyX61"
+    "variant": "tinyx61"
+  },
+  "hardware": {
+    "oscillator": "internal",
+    "uart": "no_bootloader"
+  },
+  "bootloader":{
+    "led_pin": "noled",
+    "uart_pins": "swio_rxa7_txa6",
+    "speed": 38400
   },
   "frameworks": [
     "arduino"

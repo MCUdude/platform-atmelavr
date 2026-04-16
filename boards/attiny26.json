@@ -1,33 +1,25 @@
 {
   "build": {
     "core": "TinyCore",
-    "extra_flags": "-DARDUINO_AVR_ATTINYX4",
+    "extra_flags": "-DARDUINO_AVR_ATTINY26",
     "f_cpu": "8000000L",
-    "mcu": "attiny24",
-    "variant": "tinyx4_cw"
+    "mcu": "attiny26",
+    "variant": "tiny26"
   },
   "hardware": {
     "oscillator": "internal",
     "uart": "no_bootloader"
   },
-  "bootloader":{
-    "led_pin": "noled",
-    "uart_pins": "swio_rxa2_txa1",
-    "speed": 38400
-  },
-  "debug": {
-    "simavr_target": "attiny24"
-  },
   "frameworks": [
     "arduino"
   ],
-  "name": "Generic ATtiny24",
+  "name": "Generic ATtiny26",
   "upload": {
     "extra_flags": "-e",
     "maximum_ram_size": 128,
     "maximum_size": 2048,
     "protocol": "usbtiny"
   },
-  "url": "http://www.atmel.com/devices/ATTINY24.aspx",
+  "url": "http://www.atmel.com/devices/ATTINY26.aspx",
   "vendor": "Atmel"
 }

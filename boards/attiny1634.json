@@ -1,9 +1,17 @@
 {
   "build": {
-    "core": "tinymodern",
-    "extra_flags": "-DARDUINO_AVR_ATTINY1634 -DLOWERCAL=9",
+    "core": "TinyCore",
+    "extra_flags": "-DARDUINO_AVR_ATTINY1634 -DLOWERCAL=6",
     "f_cpu": "8000000L",
-    "mcu": "attiny1634"
+    "mcu": "attiny1634",
+    "variant": "tiny1634_cw"
+  },
+  "hardware": {
+    "oscillator": "internal",
+    "uart": "no_bootloader"
+  },
+  "bootloader":{
+    "led_pin": "noled"
   },
   "frameworks": [
     "arduino"

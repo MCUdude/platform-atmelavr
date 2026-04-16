@@ -1,10 +1,19 @@
 {
   "build": {
-    "core": "tiny",
+    "core": "TinyCore",
     "extra_flags": "-DARDUINO_AVR_ATTINYX7",
     "f_cpu": "8000000L",
     "mcu": "attiny87",
-    "variant": "tinyX7_New"
+    "variant": "tinyx7"
+  },
+  "hardware": {
+    "oscillator": "internal",
+    "uart": "no_bootloader"
+  },
+  "bootloader":{
+    "led_pin": "noled",
+    "uart0_pins": "uart0_rxa0_txa1",
+    "speed": 38400
   },
   "frameworks": [
     "arduino"
