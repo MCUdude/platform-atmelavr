@@ -7,8 +7,7 @@
     "variant": "tinyx4_cw"
   },
   "hardware": {
-    "oscillator": "internal",
-    "uart": "no_bootloader"
+    "oscillator": "internal"
   },
   "bootloader":{
     "led_pin": "noled",

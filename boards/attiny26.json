@@ -7,8 +7,7 @@
     "variant": "tiny26"
   },
   "hardware": {
-    "oscillator": "internal",
-    "uart": "no_bootloader"
+    "oscillator": "internal"
   },
   "frameworks": [
     "arduino"

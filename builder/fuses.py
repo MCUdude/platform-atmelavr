@@ -738,7 +738,7 @@ if core in ("MiniCore", "MegaCore", "MightyCore", "MajorCore", "MicroCore", "Tin
         uart_pins = board.get("bootloader.uart_pins", "no_bootloader") if target in no_hw_uart else ""
         bootloader_type = board.get("bootloader.type", "no_bootloader").lower()
         if "no_bootloader" in (bootloader_type):
-            uart_pins = bootloader_type = "no_bootloader"
+            uart_pins = bootloader_type = uart = "no_bootloader"
     else:
         f_cpu = board.get("build.f_cpu", "16000000L").upper()
         oscillator = board.get("hardware.oscillator", "external").lower()

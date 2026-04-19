@@ -8,7 +8,7 @@
   },
   "hardware": {
     "oscillator": "internal",
-    "uart": "no_bootloader"
+    "uart": "uart0"
   },
   "bootloader":{
     "led_pin": "noled"
