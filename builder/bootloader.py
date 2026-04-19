@@ -23,6 +23,11 @@ board = env.BoardConfig()
 platform = env.PioPlatform()
 core = board.get("build.core", "")
 
+target = (
+    board.get("build.mcu").lower()
+    if board.get("build.mcu", "")
+    else env.subst("$BOARD").lower()
+)
 
 def get_suitable_optiboot_binary(framework_dir, board_config):
     mcu = board_config.get("build.mcu", "").lower()
@@ -144,49 +149,97 @@ if env.get("PIOFRAMEWORK", []):
         platform.frameworks[env.get("PIOFRAMEWORK")[0]]["package"]
     )
 
-bootloader_path = board.get("bootloader.file", "")
-bootloader_type = None
-if core in ("MiniCore", "MegaCore", "MightyCore", "MajorCore", "MicroCore"):
-    if not isfile(bootloader_path):
-        bootloader_type = board.get("bootloader.type", "urboot").lower()
-        if bootloader_type == "urboot" or core == "MicroCore":
-            bootloader_path = get_suitable_urboot_binary(framework_dir, board)
-        else:
-            bootloader_path = get_suitable_optiboot_binary(framework_dir, board)
-else:
-    if not isfile(bootloader_path):
-        bootloader_path = join(framework_dir, "bootloaders", bootloader_path)
+if core != "TinyCore":
+    bootloader_path = board.get("bootloader.file", "")
+    bootloader_type = None
+    if core in ("MiniCore", "MegaCore", "MightyCore", "MajorCore", "MicroCore"):
+        if not isfile(bootloader_path):
+            bootloader_type = board.get("bootloader.type", "urboot").lower()
+            if bootloader_type == "urboot" or core == "MicroCore":
+                bootloader_path = get_suitable_urboot_binary(framework_dir, board)
+            else:
+                bootloader_path = get_suitable_optiboot_binary(framework_dir, board)
+    else:
+        if not isfile(bootloader_path):
+            bootloader_path = join(framework_dir, "bootloaders", bootloader_path)
 
-    if not board.get("bootloader", {}):
-        sys.stderr.write("Error: missing bootloader configuration!\n")
+        if not board.get("bootloader", {}):
+            sys.stderr.write("Error: missing bootloader configuration!\n")
+            env.Exit(1)
+
+    if not isfile(bootloader_path):
+        sys.stderr.write("Error: Couldn't find bootloader image %s\n" % bootloader_path)
         env.Exit(1)
 
-if not isfile(bootloader_path):
-    sys.stderr.write("Error: Couldn't find bootloader image %s\n" % bootloader_path)
-    env.Exit(1)
+    print("Using bootloader image:\n%s" % bootloader_path)
 
-print("Using bootloader image:\n%s" % bootloader_path)
+    fuses_action = env.SConscript("fuses.py", exports="env")
 
-fuses_action = env.SConscript("fuses.py", exports="env")
+    if bootloader_type in ("no_bootloader", "urboot"):
+        lock_bits = board.get("bootloader.lock_bits", "0xFF")
+        unlock_bits = board.get("bootloader.unlock_bits", "0xFF")
+    else:
+        lock_bits = board.get("bootloader.lock_bits", "0x0F")
+        unlock_bits = board.get("bootloader.unlock_bits", "0x3F")
 
-if bootloader_type in ("no_bootloader", "urboot"):
+    env.Replace(
+        BOOTUPLOADER="avrdude",
+        BOOTUPLOADERFLAGS=[
+            "-p",
+            "$BOARD_MCU",
+            "-C",
+            join(env.PioPlatform().get_package_dir("tool-avrdude") or "", "avrdude.conf"),
+        ],
+        BOOTFLAGS=['-Uflash:w:%s:i' % bootloader_path, "-Ulock:w:%s:m" % lock_bits],
+        UPLOADBOOTCMD="$BOOTUPLOADER $BOOTUPLOADERFLAGS $UPLOAD_FLAGS $BOOTFLAGS",
+    )
+
+else: # TinyCore
+    fuses_action = env.SConscript("fuses.py", exports="env")
+    bootloader_led = board.get("bootloader.led_pin", "noled").lower()
+    f_cpu = int(board.get("build.f_cpu", "").strip("UL"))
     lock_bits = board.get("bootloader.lock_bits", "0xFF")
     unlock_bits = board.get("bootloader.unlock_bits", "0xFF")
-else:
-    lock_bits = board.get("bootloader.lock_bits", "0x0F")
-    unlock_bits = board.get("bootloader.unlock_bits", "0x3F")
 
-env.Replace(
-    BOOTUPLOADER="avrdude",
-    BOOTUPLOADERFLAGS=[
-        "-p",
-        "$BOARD_MCU",
-        "-C",
-        join(env.PioPlatform().get_package_dir("tool-avrdude") or "", "avrdude.conf"),
-    ],
-    BOOTFLAGS=['-Uflash:w:%s:i' % bootloader_path, "-Ulock:w:%s:m" % lock_bits],
-    UPLOADBOOTCMD="$BOOTUPLOADER $BOOTUPLOADERFLAGS $UPLOAD_FLAGS $BOOTFLAGS",
-)
+    no_hw_uart = (
+        "attiny25", "attiny45", "attiny85",
+        "attiny24", "attiny44", "attiny84",
+        "attiny261", "attiny461", "attiny861",
+        "attiny48", "attiny88",
+        "attiny43", "attiny43u",
+        "attiny26"
+    )
+    if target in no_hw_uart:
+        def format_f_cpu(f_cpu):
+            v = int(str(f_cpu))
+            return f"{v/1000000:g}MHz" if v >= 1000000 else f"{v/1000:g}kHz"
+
+        def osc_comp(x):
+            if not (-10 <= x <= 10) or (x * 100) % 125 != 0:
+                sys.stderr.write("Error: invalid f_cpu factor %.2f. Must be in steps of ±1.25 and within ±10.00\n" % x)
+                env.Exit(1)
+            return chr(ord('a') + int(round((x + 10) / 1.25)))
+        
+        uart_pins = board.get("bootloader.uart_pins", "")
+        baudrate = board.get("bootloader.speed", "")
+        f_cpu_error = float(board.get("hardware.f_cpu_error", "0.0"))
+        urboot_str = f"-Uurboot:1s_pr_{bootloader_led}_{uart_pins}_{baudrate}baud_{osc_comp(f_cpu_error)}{format_f_cpu(f_cpu)}"
+    else:
+        uart = board.get("hardware.uart", "uart0").lower()
+        urboot_str = f"-Uurboot:1s_pr_{bootloader_led}_autobaud_{uart}"
+
+    env.Replace(
+        BOOTUPLOADER="avrdude",
+        BOOTUPLOADERFLAGS=[
+            "-p",
+            "$BOARD_MCU",
+            "-C",
+            join(env.PioPlatform().get_package_dir("tool-avrdude") or "", "avrdude.conf"),
+        ],
+        BOOTFLAGS=['%s' % urboot_str, "-Ulock:w:%s:m" % lock_bits],
+        UPLOADBOOTCMD="$BOOTUPLOADER $BOOTUPLOADERFLAGS $UPLOAD_FLAGS $BOOTFLAGS",
+    )
+
 
 if env.subst("$UPLOAD_PROTOCOL") != "custom":
     env.Append(BOOTUPLOADERFLAGS=["-c", "$UPLOAD_PROTOCOL"])
