@@ -88,48 +88,58 @@ def get_lfuse(target, f_cpu, oscillator, bod, eesave, ckout):
             return 0xF7 & ~ckout_offset
         elif oscillator == "external_clock":
             return 0xE0 & ~ckout_offset
-        else:
+        elif oscillator == "internal":
             if f_cpu == "8000000L":
                 return 0xE2 & ~ckout_offset
             else:
                 return 0x62 & ~ckout_offset
+        else:
+            sys.stderr.write("Error: unknown oscillator option %s\n" % oscillator)
+            env.Exit(1)
 
     elif target in targets_2:
         if oscillator == "external":
             return 0xFF & ~ckout_offset
         elif oscillator == "external_clock":
             return 0xE0 & ~ckout_offset
-        else:
+        elif oscillator == "internal":
             if f_cpu == "8000000L":
                 return 0xE2 & ~ckout_offset
-            else:
-                return 0x62 & ~ckout_offset
+        else:
+            sys.stderr.write("Error: unknown oscillator option %s\n" % oscillator)
+            env.Exit(1)
 
     elif target in targets_3:
         if bod == "4.0v":
             bod_bits = 0b11
         elif bod == "2.7v":
             bod_bits = 0b01
-        else:
+        elif bod in ("disabled", ""):
             bod_bits = 0b00
+        else:
+            sys.stderr.write("Error: Invalid BOD setting %s\n" % bod)
+            env.Exit(1)
 
         bod_offset = bod_bits << 6
         if oscillator == "external":
             return 0xFF & ~bod_offset
         elif oscillator == "external_clock":
             return 0xE0 & ~bod_offset
-        else:
+        elif oscillator == "internal":
             if f_cpu == "8000000L":
                 return 0xE4 & ~bod_offset
             else:
                 return 0xE1 & ~bod_offset
+        else:
+            sys.stderr.write("Error: unknown oscillator option %s\n" % oscillator)
+            env.Exit(1)
 
     elif target in targets_4:
         eesave_bit = 1 if eesave == "yes" else 0
         eesave_offset = eesave_bit << 6
         if oscillator == "external" or oscillator == "external_clock":
             return 0x78 & ~eesave_offset
-        else:
+        elif oscillator == "internal":
             if f_cpu == "9600000L":
                 return 0x7A & ~eesave_offset
             elif f_cpu == "4800000L":
@@ -145,14 +155,16 @@ def get_lfuse(target, f_cpu, oscillator, bod, eesave, ckout):
             else:
                 sys.stderr.write("Error: unknown internal f_cpu value %s\n" % f_cpu)
                 env.Exit(1)
-
+        else:
+            sys.stderr.write("Error: unknown oscillator option %s\n" % oscillator)
+            env.Exit(1)
 
     elif target in targets_5 + targets_6 + targets_10:
         if oscillator == "external":
             return 0xFF & ~ckout_offset
         elif oscillator == "external_clock":
             return 0xE0 & ~ckout_offset
-        else:
+        elif oscillator == "internal":
             has_pll = target in targets_5 + targets_10
             if f_cpu == "16000000L" and has_pll:
                 return 0xF1 & ~ckout_offset
@@ -168,6 +180,9 @@ def get_lfuse(target, f_cpu, oscillator, bod, eesave, ckout):
             else:
                 sys.stderr.write("Error: unknown internal f_cpu value %s\n" % f_cpu)
                 env.Exit(1)
+        else:
+            sys.stderr.write("Error: unknown oscillator option %s\n" % oscillator)
+            env.Exit(1)
 
     elif target in targets_7 + targets_9 + targets_12:
         ext_val = 0xFF if target in targets_7 else (0xEE if target in targets_9 else 0xEF)
@@ -175,7 +190,7 @@ def get_lfuse(target, f_cpu, oscillator, bod, eesave, ckout):
             return ext_val & ~ckout_offset
         elif oscillator == "external_clock":
             return 0xE0 & ~ckout_offset
-        else:
+        elif oscillator == "internal":
             has_wdt = target in targets_7
             if f_cpu == "8000000L":
                 return 0xE2 & ~ckout_offset
@@ -186,12 +201,15 @@ def get_lfuse(target, f_cpu, oscillator, bod, eesave, ckout):
             else:
                 sys.stderr.write("Error: unknown internal f_cpu value %s\n" % f_cpu)
                 env.Exit(1)
-    
+        else:
+            sys.stderr.write("Error: unknown oscillator option %s\n" % oscillator)
+            env.Exit(1)
+
     elif target in targets_8 + targets_13:
         ext_val = 0xEC if target in targets_8 else 0xE0
         if oscillator == "external_clock":
             return ext_val & ~ckout_offset
-        else:
+        elif oscillator == "internal":
             has_wdt = target in targets_8
             if f_cpu == "8000000L":
                 return 0xEE & ~ckout_offset
@@ -202,13 +220,16 @@ def get_lfuse(target, f_cpu, oscillator, bod, eesave, ckout):
             else:
                 sys.stderr.write("Error: unknown internal f_cpu value %s\n" % f_cpu)
                 env.Exit(1)
+        else:
+            sys.stderr.write("Error: unknown oscillator option %s\n" % oscillator)
+            env.Exit(1)
 
     elif target in (targets_11):
         if oscillator == "external":
             return 0xFF & ~ckout_offset
         elif oscillator == "external_clock":
             return 0xE0 & ~ckout_offset
-        else:
+        elif oscillator == "internal":
             if f_cpu == "8000000L":
                 return 0xE4 & ~ckout_offset
             elif f_cpu == "4000000L":
@@ -220,11 +241,14 @@ def get_lfuse(target, f_cpu, oscillator, bod, eesave, ckout):
             else:
                 sys.stderr.write("Error: unknown internal f_cpu value %s\n" % f_cpu)
                 env.Exit(1)
+        else:
+            sys.stderr.write("Error: unknown oscillator option %s\n" % oscillator)
+            env.Exit(1)
 
     elif target in (targets_14):
         if oscillator == "external_clock":
             return 0x60 & ~ckout_offset
-        else:
+        elif oscillator == "internal":
             if f_cpu == "8000000L":
                 return 0xE2 & ~ckout_offset
             elif f_cpu in ("4000000L", "1000000L"):
@@ -234,13 +258,16 @@ def get_lfuse(target, f_cpu, oscillator, bod, eesave, ckout):
             else:
                 sys.stderr.write("Error: unknown internal f_cpu value %s\n" % f_cpu)
                 env.Exit(1)
+        else:
+            sys.stderr.write("Error: unknown oscillator option %s\n" % oscillator)
+            env.Exit(1)
 
     elif target in (targets_15):
         if oscillator == "external":
             return 0xBF
         elif oscillator == "external_clock":
             return 0xE0
-        else:
+        elif oscillator == "internal":
             if f_cpu == "16000000L":
                 return 0x61
             elif f_cpu == "8000000L":
@@ -252,6 +279,9 @@ def get_lfuse(target, f_cpu, oscillator, bod, eesave, ckout):
             else:
                 sys.stderr.write("Error: unknown internal f_cpu value %s\n" % f_cpu)
                 env.Exit(1)
+        else:
+            sys.stderr.write("Error: unknown oscillator option %s\n" % oscillator)
+            env.Exit(1)
 
     else:
         sys.stderr.write("Error: Couldn't calculate lfuse for %s\n" % target)
@@ -321,11 +351,11 @@ def get_hfuse(target, oscillator, bod, eesave, jtagen, bootloader_type):
     targets_7 = ("attiny13", "attiny13a")
     targets_8 = ("attiny26",)
     targets_9 = ("attiny43", "attiny43u")
-    targets_10 = (
+    targets_10 = ("attiny2313", "attiny2313A", "attiny4313")
+    targets_11 = (
         "attiny25", "attiny45", "attiny85",
         "attiny24", "attiny44", "attiny84",
         "attiny261", "attiny461", "attiny861",
-        "attiny2313", "attiny2313A", "attiny4313",
         "attiny441", "attiny841",
         "attiny87", "attiny167",
         "attiny48", "attiny88",
@@ -372,7 +402,7 @@ def get_hfuse(target, oscillator, bod, eesave, jtagen, bootloader_type):
         elif bod in ("disabled", ""):
             return 0xDF & ~eesave_offset
         else:
-            sys.stderr.write("Error: Invalid BOD setting %s for target %s\n" % (bod, target))
+            sys.stderr.write("Error: Invalid BOD setting %s\n" % bod)
             env.Exit(1)
 
     elif target in targets_5:
@@ -397,7 +427,7 @@ def get_hfuse(target, oscillator, bod, eesave, jtagen, bootloader_type):
         elif bod in ("disabled", ""):
             return 0xFF & ~selfprogen_offset
         else:
-            sys.stderr.write("Error: Invalid BOD setting %s for target %s\n" % (bod, target))
+            sys.stderr.write("Error: Invalid BOD setting %s\n" % bod)
             env.Exit(1)
 
     elif target in targets_8:
@@ -409,7 +439,7 @@ def get_hfuse(target, oscillator, bod, eesave, jtagen, bootloader_type):
         elif bod in ("disabled", ""):
             return 0xF7 & ~eesave_offset
         else:
-            sys.stderr.write("Error: Invalid BOD setting %s for target %s\n" % (bod, target))
+            sys.stderr.write("Error: Invalid BOD setting %s\n" % bod)
             env.Exit(1)
 
     elif target in targets_9:
@@ -430,11 +460,22 @@ def get_hfuse(target, oscillator, bod, eesave, jtagen, bootloader_type):
         elif bod in ("disabled", ""):
             return 0xDF & ~eesave_offset
         else:
-            sys.stderr.write("Error: Invalid BOD setting %s for target %s\n" % (bod, target))
+            sys.stderr.write("Error: Invalid BOD setting %s\n" % bod)
             env.Exit(1)
 
-
     elif target in targets_10:
+        eesave_offset = eesave_bit << 6
+        if bod == "4.3v":
+            return 0xF9 & ~eesave_offset
+        elif bod == "2.7v":
+            return 0xFB & ~eesave_offset
+        elif bod in ("disabled", ""):
+            return 0xFF & ~eesave_offset
+        else:
+            sys.stderr.write("Error: Invalid BOD setting %s\n" % bod)
+            env.Exit(1)
+
+    elif target in targets_11:
         if bod == "4.3v":
             return 0xDD & ~eesave_offset
         elif bod == "2.7v":
@@ -444,7 +485,7 @@ def get_hfuse(target, oscillator, bod, eesave, jtagen, bootloader_type):
         elif bod in ("disabled", ""):
             return 0xDF & ~eesave_offset
         else:
-            sys.stderr.write("Error: Invalid BOD setting %s for target %s\n" % (bod, target))
+            sys.stderr.write("Error: Invalid BOD setting %s\n" % bod)
             env.Exit(1)
 
     else:
@@ -535,7 +576,6 @@ def get_efuse(target, bod, cfd, bootloader_type):
         return None
 
     is_urboot_or_noboot = bootloader_type in ("no_bootloader", "urboot")
-    is_urboot = bootloader_type in ("urboot")
 
     if target in targets_1:
         if bod == "4.3v":
@@ -547,7 +587,7 @@ def get_efuse(target, bod, cfd, bootloader_type):
         elif bod in ("disabled", ""):
             return 0xFF
         else:
-            sys.stderr.write("Error: Invalid BOD setting %s for target %s\n" % (bod, target))
+            sys.stderr.write("Error: Invalid BOD setting %s\n" % bod)
             env.Exit(1)
 
     elif target in targets_2:
@@ -560,7 +600,7 @@ def get_efuse(target, bod, cfd, bootloader_type):
         elif bod in ("disabled", ""):
             return 0xF7
         else:
-            sys.stderr.write("Error: Invalid BOD setting %s for target %s\n" % (bod, target))
+            sys.stderr.write("Error: Invalid BOD setting %s\n" % bod)
             env.Exit(1)
 
     elif target in targets_3:
@@ -590,7 +630,7 @@ def get_efuse(target, bod, cfd, bootloader_type):
         elif bod in ("disabled", ""):
             return 0xFF
         else:
-            sys.stderr.write("Error: Invalid BOD setting %s for target %s\n" % (bod, target))
+            sys.stderr.write("Error: Invalid BOD setting %s\n" % bod)
             env.Exit(1)
 
     elif target in targets_6:
@@ -603,7 +643,7 @@ def get_efuse(target, bod, cfd, bootloader_type):
         elif bod in ("disabled", ""):
             return 0xFF
         else:
-            sys.stderr.write("Error: Invalid BOD setting %s for target %s\n" % (bod, target))
+            sys.stderr.write("Error: Invalid BOD setting %s\n" % bod)
             env.Exit(1)
 
     elif target in targets_7:
