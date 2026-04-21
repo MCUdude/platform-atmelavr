@@ -195,6 +195,10 @@ if core != "TinyCore":
     )
 
 else: # TinyCore
+    if board.get("bootloader.type", "no_bootloader").lower() == "no_bootloader":
+        sys.stderr.write("Error: No bootloader specified in platformio.ini - use board_bootloader.type = urboot\n")
+        env.Exit(1)
+
     fuses_action = env.SConscript("fuses.py", exports="env")
     bootloader_led = board.get("bootloader.led_pin", "noled").lower()
     f_cpu = int(board.get("build.f_cpu", "").strip("UL"))
